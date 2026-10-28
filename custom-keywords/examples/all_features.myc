@@ -1,0 +1,50 @@
+/* My all features module for this compiler project. */
+#include <stdio.h>
+
+int main(void) {
+  int number;
+  output("Enter an integer: ");
+  when (input("%d", &number) != 1) {
+    output("Invalid input\n");
+    provide 1;
+  }
+
+  when (number > 0) {
+    output("if: positive\n");
+  } given {
+    output("else: zero or negative\n");
+  }
+
+  each (int i = 1; i <= 3; i++) {
+    when (i == 2) so_on;
+    output("for: %d\n", i);
+  }
+
+  int count = 0;
+  until (count < 2) {
+    output("while: %d\n", count);
+    count++;
+  }
+
+  count = 0;
+  execute {
+    output("do while: %d\n", count);
+    count++;
+  } until (count < 1);
+
+  choose (number) {
+    match 1:
+      output("switch: case 1\n");
+      snap;
+    match 2:
+      output("switch: case 2\n");
+      snap;
+    otherwise:
+      output("switch: default\n");
+      snap;
+  }
+
+  /* Custom words inside comments are left as text: output each when. */
+  output("Strings stay unchanged: output input each until\n");
+  provide 0;
+}

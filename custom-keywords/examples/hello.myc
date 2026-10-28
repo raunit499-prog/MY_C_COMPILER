@@ -1,0 +1,7 @@
+/* My hello module for this compiler project. */
+#include <stdio.h>
+
+int main(void) {
+  output("Hello from my own C-like language!\n");
+  provide 0;
+}

@@ -1,0 +1,29 @@
+/* My number guessing module for this compiler project. */
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main(void) {
+    srand((unsigned) time(NULL));
+    int target = rand() % 100 + 1;
+    int guess = 0;
+    int attempts = 0;
+    output("Guess a number from 1 to 100.\n");
+
+    execute {
+        output("Your guess: ");
+        when (input("%d", &guess) != 1) {
+            output("Please enter an integer.\n");
+            provide 1;
+        }
+        attempts++;
+        when (guess < target) {
+            output("Higher number please!\n");
+        } given when (guess > target) {
+            output("Lower number please!\n");
+        }
+    } until (guess != target);
+
+    output("Correct! You used %d guesses.\n", attempts);
+    provide 0;
+}

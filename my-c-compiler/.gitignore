@@ -1,0 +1,6 @@
+*.exe
+*.o
+*.s
+/minic
+/program
+/build/

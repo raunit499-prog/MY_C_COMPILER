@@ -1,0 +1,26 @@
+MY C COMPILER — MY CUSTOM LANGUAGE
+
+Extract MY_C_COMPILER.zip, install Python 3.10+ with Tkinter and GCC 11+,
+and double-click START_GUI.bat on Windows. On Linux desktop use sh START_GUI.sh.
+Click Run or press F5. Choose GCC if it was not found automatically.
+
+My spellings:
+printf = output
+scanf = input
+for = each
+if = when
+else = given
+while = until
+do = execute
+switch = choose
+case = match
+default = otherwise
+break = snap
+continue = so_on
+return = provide
+
+Use provide, snap and so_on instead of return, break and continue.
+int and other unrenamed types remain valid. until repeats while true.
+Open Problems and double-click an error to jump to its location.
+Use Ctrl+G for Go to line, and Language help for the rules.
+See README.md and docs/VALIDATION.md for details and current limitations.

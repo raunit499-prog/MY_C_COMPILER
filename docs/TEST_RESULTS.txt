@@ -1,0 +1,74 @@
+My current Linux validation: 42 tests passed. Native Windows execution unverified.
+
+custom-keywords/tests/test_translation.py
+test_all_requested_features_execute (__main__.TranslationTests.test_all_requested_features_execute) ... ok
+test_bad_config_does_not_overwrite_output (__main__.TranslationTests.test_bad_config_does_not_overwrite_output) ... ok
+test_bad_source_does_not_overwrite_output (__main__.TranslationTests.test_bad_source_does_not_overwrite_output) ... ok
+test_complete_identifiers_and_literal_boundaries (__main__.TranslationTests.test_complete_identifiers_and_literal_boundaries) ... ok
+test_configuration_changes_need_no_rebuild (__main__.TranslationTests.test_configuration_changes_need_no_rebuild) ... ok
+test_line_endings_bom_and_splicing (__main__.TranslationTests.test_line_endings_bom_and_splicing) ... ok
+test_numeric_tokens_and_prefixed_literals_are_preserved (__main__.TranslationTests.test_numeric_tokens_and_prefixed_literals_are_preserved) ... ok
+test_parenthesized_switch_labels_and_if_both_work (__main__.TranslationTests.test_parenthesized_switch_labels_and_if_both_work) ... ok
+test_preprocessor_directives_are_preserved (__main__.TranslationTests.test_preprocessor_directives_are_preserved) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.184s
+
+OK
+
+
+tests/test_backend.py
+test_all_custom_features (__main__.BackendTests.test_all_custom_features) ... ok
+test_c_syntax_error_is_reported (__main__.BackendTests.test_c_syntax_error_is_reported) ... ok
+test_eof_for_input_loop (__main__.BackendTests.test_eof_for_input_loop) ... ok
+test_hello_compiles_and_runs (__main__.BackendTests.test_hello_compiles_and_runs) ... ok
+test_interactive_input_and_unterminated_prompt (__main__.BackendTests.test_interactive_input_and_unterminated_prompt) ... ok
+test_invalid_keyword_config_is_reported (__main__.BackendTests.test_invalid_keyword_config_is_reported) ... ok
+test_keyword_changes_without_rebuilding_frontend (__main__.BackendTests.test_keyword_changes_without_rebuilding_frontend) ... ok
+test_local_header_and_spaces_in_paths (__main__.BackendTests.test_local_header_and_spaces_in_paths) ... ok
+test_output_limit (__main__.BackendTests.test_output_limit) ... ok
+test_runtime_limit (__main__.BackendTests.test_runtime_limit) ... ok
+test_stop_infinite_loop (__main__.BackendTests.test_stop_infinite_loop) ... ok
+test_translate_only (__main__.BackendTests.test_translate_only) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.954s
+
+OK
+
+
+tests/test_strict_language.py
+test_all_thirteen_standard_spellings_rejected (__main__.StrictLanguageTests.test_all_thirteen_standard_spellings_rejected) ... ok
+test_comments_strings_and_types_work (__main__.StrictLanguageTests.test_comments_strings_and_types_work) ... ok
+test_conditional_directive_allowed (__main__.StrictLanguageTests.test_conditional_directive_allowed) ... ok
+test_config_cannot_restore_standard_spelling (__main__.StrictLanguageTests.test_config_cannot_restore_standard_spelling) ... ok
+test_crlf_and_spliced_word_diagnostic (__main__.StrictLanguageTests.test_crlf_and_spliced_word_diagnostic) ... ok
+test_foreign_language_examples_rejected (__main__.StrictLanguageTests.test_foreign_language_examples_rejected) ... ok
+test_missing_semicolon_and_unknown_function_rejected (__main__.StrictLanguageTests.test_missing_semicolon_and_unknown_function_rejected) ... ok
+test_native_error_location_after_splicing (__main__.StrictLanguageTests.test_native_error_location_after_splicing) ... ok
+test_original_column_after_longer_translation (__main__.StrictLanguageTests.test_original_column_after_longer_translation) ... ok
+test_original_column_after_shorter_translation (__main__.StrictLanguageTests.test_original_column_after_shorter_translation) ... ok
+test_standard_word_in_macro_rejected (__main__.StrictLanguageTests.test_standard_word_in_macro_rejected) ... ok
+test_unicode_and_tab_location (__main__.StrictLanguageTests.test_unicode_and_tab_location) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.576s
+
+OK
+
+
+tests/test_gui.py
+test_compile_errors_appear_in_build_log (__main__.GuiTests.test_compile_errors_appear_in_build_log) ... ok
+test_go_to_line_and_language_help (__main__.GuiTests.test_go_to_line_and_language_help) ... ok
+test_keyword_config_error_jumps_to_keywords (__main__.GuiTests.test_keyword_config_error_jumps_to_keywords) ... ok
+test_run_button_and_generated_c (__main__.GuiTests.test_run_button_and_generated_c) ... ok
+test_save_and_open_roundtrip (__main__.GuiTests.test_save_and_open_roundtrip) ... ok
+test_send_button_supplies_live_input (__main__.GuiTests.test_send_button_supplies_live_input) ... ok
+test_stop_button (__main__.GuiTests.test_stop_button) ... ok
+test_strict_error_navigation_and_highlight (__main__.GuiTests.test_strict_error_navigation_and_highlight) ... ok
+test_translate_and_run_with_edited_keywords (__main__.GuiTests.test_translate_and_run_with_edited_keywords) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.786s
+
+OK
