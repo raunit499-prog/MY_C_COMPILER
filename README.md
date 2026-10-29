@@ -1,12 +1,21 @@
-# My C Compiler
+# C Compiler — Group Project
 
-I built this project to experiment with my own C-like language. My frontend is written in C, my desktop interface uses Python/Tkinter, and GCC compiles the generated standard C into a native executable.
+We developed this project to explore how a custom C-like language can be translated, compiled, and run. Our frontend is written in **C**, our desktop interface uses **Python and Tkinter**, and **GCC** compiles the generated standard C into a native executable.
 
-## My strict vocabulary
+Our work focuses on the keyword frontend, its connection to GCC, and the desktop interface. We use GCC as the native compilation backend; we do not claim to have written GCC or a complete C implementation from scratch.
 
-My programs must use these custom spellings. The standard spelling on the left is rejected as a complete identifier in submitted program code, including macro bodies. Strings and comments may contain these words as text.
+## Our team
 
-| Standard C spelling (rejected) | My spelling (accepted) |
+- **Satyajeet Singh**
+- **Yug Sharma**
+- **Raunit Singh**
+- **Ayush Kestwal**
+
+## Our custom vocabulary
+
+Programs submitted to our custom-language frontend must use the spellings in the right-hand column. The corresponding standard names are rejected when they appear as complete identifiers in program code, including macro bodies. These words can still appear as ordinary text inside strings and comments.
+
+| Standard C spelling (rejected) | Our spelling (accepted) |
 | --- | --- |
 | `printf` | `output` |
 | `scanf` | `input` |
@@ -22,11 +31,13 @@ My programs must use these custom spellings. The standard spelling on the left i
 | `continue` | `so_on` |
 | `return` | `provide` |
 
-I still use C types and punctuation: int, void, char, braces, parentheses, semicolons, operators, and preprocessor directives such as #include. I have not renamed every word in the C language. The C implementation itself, generated C, included standard headers, and the separate arithmetic reference compiler naturally contain standard C words.
+We have changed selected names, rather than every word in C. Types such as `int`, `void`, and `char` retain their usual names. Braces, parentheses, semicolons, operators, and preprocessor directives such as `#include` also keep their usual form.
 
-**until keeps while behavior: it repeats while the condition is true.** It does not invert the condition. execute { ... } until (condition); runs its body at least once.
+The compiler implementation, generated C, included standard headers, and separate arithmetic reference compiler use ordinary C names. The strict vocabulary rules apply to source submitted to our custom-language frontend.
 
-## A working program
+**`until` behaves exactly like C's `while`: it repeats while the condition is true.** It does not reverse the condition. Similarly, `execute { ... } until (condition);` behaves like a C `do ... while` loop and runs its body at least once.
+
+## Example program
 
 ```c
 #include <stdio.h>
@@ -47,63 +58,72 @@ int main(void) {
 }
 ```
 
-Writing printf, scanf, for, if, else, while, do, switch, case, default, break, continue, or return as program identifiers raises an error naming the required custom word. All thirteen mappings are required; the configuration cannot restore their standard spellings. Alias names remain editable, but the program must use the current configuration.
+The frontend translates the custom names into standard C before GCC compiles the result. If a program uses one of the thirteen replaced standard names, the frontend reports an error and identifies the required custom spelling.
 
-## Start on Windows
+All thirteen mappings must be present. The configuration can change an alias, but it cannot restore that mapping's original standard spelling. Programs must use the aliases in the current configuration.
 
-1. Extract MY_C_COMPILER.zip. Do not run from inside the ZIP viewer.
-2. Install Python 3.10 or newer with Tcl/Tk, and GCC 11 or newer.
-3. Open the extracted MY_C_COMPILER folder.
-4. Double-click START_GUI.bat.
-5. If needed, click Choose GCC and select the actual gcc.exe.
-6. Click Run or press F5 to run the Hello World example.
+## Getting started on Windows
 
-For MSYS2 UCRT64, GCC is usually C:\msys64\ucrt64\bin\gcc.exe. Python and GCC are installed separately; I have not bundled their runtimes.
+1. Extract `MY_C_COMPILER.zip` into a writable folder. Do not launch the project from inside the ZIP viewer.
+2. Install **Python 3.10 or newer**, including Tcl/Tk, and **GCC 11 or newer**.
+3. Open the extracted `MY_C_COMPILER` folder.
+4. Double-click `START_GUI.bat`.
+5. If the application asks for GCC, click **Choose GCC** and select the actual `gcc.exe` file.
+6. Click **Run**, or press **F5**, to try the included Hello World example.
 
-Manual launch from PowerShell:
+For an MSYS2 UCRT64 installation, the usual GCC location is `C:\msys64\ucrt64\bin\gcc.exe`. Python and GCC must be installed separately; their runtimes are not bundled with this project.
+
+To open the interface manually, run this command from the project folder in PowerShell:
 
 ```powershell
 py -3 gui\app.py
 ```
 
-## Linux desktop
+## Getting started on a Linux desktop
 
-Install Python with Tkinter and GCC 11 or newer, then run from the extracted folder:
+Install Python with Tkinter and GCC 11 or newer. From the extracted project folder, run:
 
 ```sh
 sh START_GUI.sh
 ```
 
-A graphical desktop is required for this Tkinter application. It is not a website or an Android APK. No pip dependencies are required for normal use.
+This Tkinter application needs a graphical desktop. It is a desktop program, not a website or an Android APK. Normal use does not require additional pip packages.
 
-## My interface
+## Using our desktop interface
 
-- **Source / Generated C / Keywords:** edit my language, inspect the translation, or edit the dictionary.
-- **Translate:** perform lexical translation only. Compile and Run additionally check C syntax/types using GCC.
-- **Compile / Run / F5:** compile the current editor/configuration snapshot; Run starts the executable after a successful build.
-- **Problems:** show errors, warnings and notes with original source line/column positions. Double-click or press Enter on a problem to jump to it. Configuration errors jump to Keywords.
-- **Error highlights:** show error lines and the reported character in the appropriate editor. Editing clears old highlighting; stale problem navigation asks for a fresh build.
-- **Build log:** show GCC/translator output with original source excerpts and caret markers. Messages about included headers retain their real header paths.
-- **Go to line / Ctrl+G:** jump to a source line.
-- **Language help:** show all thirteen default mappings and the main language rules.
-- **Progress indicator:** animate while a build/run is active.
-- **Examples:** Hello World, all keywords, number guessing, and star pattern.
-- **Program input:** preload values or choose the execution timeout.
-- **stdin / Send:** send a line to the running program. Send EOF closes input; Stop requests termination.
-- **New / Open / Save / Save keywords:** manage source/configuration files.
-- **Export program:** copy a current successful executable to a permanent destination.
+| Feature | What it does |
+| --- | --- |
+| **Source / Generated C / Keywords** | Lets us write custom-language source, inspect its standard C translation, and edit the keyword dictionary. |
+| **Translate** | Checks lexical rules and translates keywords. It does not perform the full syntax and type checks provided by GCC. |
+| **Compile / Run / F5** | Builds a snapshot of the current source and configuration. Run starts the executable only after a successful build. |
+| **Problems** | Lists errors, warnings, and notes with original source positions. Double-click an entry, or press Enter, to jump to it. Configuration errors open the Keywords editor. |
+| **Error highlights** | Marks the reported line and character in the relevant editor. Editing clears old highlights; navigation to a stale problem requests a fresh build. |
+| **Build log** | Shows translator and GCC messages, original source excerpts, and caret markers. Diagnostics from included headers keep their actual header paths. |
+| **Go to line / Ctrl+G** | Moves to a chosen source line. |
+| **Language help** | Explains the thirteen default mappings and the main language rules. |
+| **Progress indicator** | Animates while compilation or execution is active. |
+| **Examples** | Provides Hello World, all keywords, number guessing, and star pattern programs. |
+| **Program input** | Lets us preload input values and select an execution timeout. |
+| **stdin / Send** | Sends a line to a running program. Send EOF closes its input, and Stop requests termination. |
+| **New / Open / Save / Save keywords** | Creates, opens, and saves source or configuration files. |
+| **Export program** | Copies a current, successfully built executable to a permanent destination. |
 
-The vocabulary table displays all thirteen configured pairs. The first build creates the C frontend; later builds cache it until its source or selected GCC path changes.
+The vocabulary table shows all thirteen configured pairs. On the first build, the application builds the C frontend. Later builds reuse it until the frontend source or selected GCC path changes.
 
-## My diagnostics
+## How errors are reported
 
-I used the C workflow in OnlineGDB and GCC's diagnostic documentation as references for compilation feedback. My application uses GCC's actual diagnostics; it is not affiliated with OnlineGDB and does not include its website or a GDB debugger.
+We referred to the C workflow in OnlineGDB and GCC's diagnostic documentation when designing compilation feedback. Our application displays actual GCC diagnostics. It is not affiliated with OnlineGDB, and it does not include the OnlineGDB website or a GDB debugger.
 
-My C scanner rejects forbidden standard spellings and malformed literals/comments. GCC checks the translated program's declarations, expressions, syntax and types. Unknown function calls are errors rather than permissive implicit declarations. Failed builds are never run.
+The checks happen in two main stages:
 
-In the GUI, I map reported generated-C locations back to the original custom source. This accounts for alias length changes, CRLF normalization, ordinary backslash-newline continuations, UTF-8 byte columns, and tabs. The log shows a source excerpt and caret; Problems lets me jump to the reported character. Native scanner errors also retain original source positions after normalization.
+1. **Our C frontend** rejects forbidden standard spellings and malformed literals or comments.
+2. **GCC** checks declarations, expressions, syntax, and types in the translated C program. Unknown function calls are treated as errors rather than accepted as implicit declarations.
 
-Example:
+A failed build is never executed.
+
+Our GUI maps diagnostic locations in generated C back to the original custom-language source. The mapping accounts for different alias lengths, CRLF line-ending normalization, ordinary backslash-newline continuations, UTF-8 byte columns, and tabs. The build log shows the original source excerpt and a caret, while Problems provides navigation to the reported character. Native scanner errors also retain their original source positions after normalization.
+
+For example:
 
 ```text
 source.myc:4:5: error: standard spelling 'printf' is disabled; use 'output' instead
@@ -111,42 +131,48 @@ source.myc:4:5: error: standard spelling 'printf' is disabled; use 'output' inst
       |     ^
 ```
 
-GCC messages can mention standard C function names because GCC sees the translated source. The location and excerpt shown by the GUI refer to my original source. Some errors are reported at the next token, at end-of-file, inside an included header, or by the linker; not every failure has a unique source character. This is how real compiler diagnostics work too. Correct syntax does not prove correct program logic, and runtime undefined behavior is not exhaustively detected.
+GCC messages may mention standard C function names because GCC processes the translated program. The source location and excerpt shown by our GUI refer to the original custom-language code.
 
-Python, Java, JavaScript, or C++ examples with syntax that is not valid in my language fail compilation. Source text that happens to be valid in more than one language cannot reliably be classified by its intended language. File extensions do not determine acceptance.
+Some errors are reported at the next token, at the end of the file, in an included header, or by the linker. A failure does not always have one uniquely identifiable source character. Successful compilation also does not guarantee correct program logic, and runtime undefined behavior is not exhaustively detected.
+
+Python, Java, JavaScript, or C++ source containing syntax that is invalid in our language fails compilation. However, text that is valid in more than one language cannot reliably be classified by its intended language. Acceptance depends on the submitted source and language rules, rather than the filename extension.
 
 ## Input and execution limits
 
-- At most 1 MiB of source with no embedded NUL bytes.
-- At most 63 ASCII identifier characters per alias, starting with a letter.
-- At most 64 KiB of preloaded stdin.
-- Default execution timeout: 30 seconds, including time waiting for input; selectable up to 300 seconds.
-- Output cap: 512 KiB per run.
-- Compiler-command deadline: 45 seconds.
-
-The C translator preserves identifiers in preprocessor directives rather than translating custom spellings there. Standard directive names such as #if remain allowed, while forbidden identifiers in macro bodies are rejected. Use standard C in separately included headers: they are processed by GCC, not by my custom scanner. Advanced preprocessing, explicit #line remapping and compiler extensions can limit source mapping; diagnostics from those constructs remain best-effort. This tool is intended for my own local programs, not isolated execution of untrusted public submissions.
-
-## Project files
-
-| Path | My responsibility for this part |
+| Item | Limit |
 | --- | --- |
-| custom-keywords/src/ | C dictionary validation, source scanning and strict vocabulary checks. |
-| custom-keywords/keywords.cfg | My thirteen configurable spellings. |
-| custom-keywords/examples/ | Programs using provide, snap and so_on as well as the other custom words. |
-| gui/app.py | Native Tk editor, controls, problem navigation, highlights and help. |
-| gui/backend.py | Translation, GCC processes, live input/output, cancellation and execution limits. |
-| gui/diagnostics.py | Mapping generated diagnostic positions back to custom source. |
-| gui/runtime_io.h | Immediate output prompts through GUI pipes. |
-| tests/ | Backend, strict-language and GUI regression tests. |
-| custom-keywords/tests/ | C translator regression tests. |
-| my-c-compiler/ | My separate arithmetic-to-assembly learning reference; it is not the GUI backend or strict dialect compiler. |
-| docs/VALIDATION.md | Current verification and platform limits. |
+| Source file | At most **1 MiB**, with no embedded NUL bytes. |
+| Configured alias | At most **63 ASCII identifier characters**, beginning with a letter. |
+| Preloaded standard input | At most **64 KiB**. |
+| Program execution | **30 seconds** by default, including time spent waiting for input; selectable up to **300 seconds**. |
+| Program output | At most **512 KiB** per run. |
+| Compiler command | A **45-second** deadline. |
 
-Generated build files and Python caches are not shipped. settings.json, saved source files and exported executables are created during use.
+The translator leaves identifiers inside preprocessor directives unchanged rather than translating their custom spellings there. Standard directive names such as `#if` are allowed, while forbidden standard identifiers in macro bodies are rejected. Separately included headers should use standard C because GCC processes them without passing them through our custom scanner.
 
-## Command-line frontend
+Advanced preprocessing, explicit `#line` remapping, and compiler extensions can limit source mapping. Diagnostics involving those constructs remain best-effort. This application is intended for our own local programs; it does not provide isolated execution for untrusted public submissions.
 
-From the project folder on Linux:
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `custom-keywords/src/` | Implements dictionary validation, source scanning, and strict vocabulary checks in C. |
+| `custom-keywords/keywords.cfg` | Stores our thirteen configurable spellings. |
+| `custom-keywords/examples/` | Contains programs using all custom words, including `provide`, `snap`, and `so_on`. |
+| `gui/app.py` | Creates the Tk editor, controls, problem navigation, highlights, and help. |
+| `gui/backend.py` | Handles translation, GCC processes, live input/output, cancellation, and execution limits. |
+| `gui/diagnostics.py` | Maps generated diagnostic locations back to the custom source. |
+| `gui/runtime_io.h` | Makes output prompts appear immediately through the GUI pipes. |
+| `tests/` | Contains backend, strict-language, and GUI regression tests. |
+| `custom-keywords/tests/` | Contains regression tests for the C translator. |
+| `my-c-compiler/` | Contains our separate arithmetic-to-assembly learning reference. It is not the GUI backend or the strict dialect compiler. |
+| `docs/VALIDATION.md` | Records verification results and platform limitations. |
+
+Generated build files and Python caches are not included in the distributed project. Files such as `settings.json`, saved source files, and exported executables are created during use.
+
+## Using the frontend from the command line
+
+Run these commands from the project folder on Linux:
 
 ```sh
 mkdir -p build
@@ -156,12 +182,14 @@ gcc -std=c11 build/hello.c -o build/hello
 ./build/hello
 ```
 
-The standalone translator checks lexical rules; it does not itself invoke GCC. The GUI adds full compilation, original-source GCC diagnostic mapping and execution controls.
+The standalone translator checks lexical rules and writes standard C; it does not invoke GCC itself. Our GUI connects that translation stage to full compilation, diagnostic mapping, and execution controls.
 
-## References
+## References and tools
 
-- https://www.onlinegdb.com/online_c_compiler
-- https://docs.onlinegdb.com/IDE/
-- https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.html
-- https://www.python.org/downloads/
-- https://www.msys2.org/
+We use GCC, Python, Tkinter, and other established tools as part of the project. Their authorship remains with their respective developers.
+
+- [OnlineGDB C compiler](https://www.onlinegdb.com/online_c_compiler)
+- [OnlineGDB IDE documentation](https://docs.onlinegdb.com/IDE/)
+- [GCC diagnostic formatting options](https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.html)
+- [Python downloads](https://www.python.org/downloads/)
+- [MSYS2](https://www.msys2.org/)
