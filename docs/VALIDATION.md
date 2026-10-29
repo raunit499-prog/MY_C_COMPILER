@@ -33,3 +33,13 @@ Automated checks completed locally: 72 WebAssembly/compiler/input tests passed; 
 Chrome's managed HTTP preview confirmed hello execution, an infinite loop continuing beyond the former execution deadline until Stop, and successful recompilation after Stop. The preview must start from the repository root so the browser build can read the native frontend sources. Live-input bridge tests execute real WebAssembly in Node workers and validate prompt-before-read, successive input, preloaded-to-live ordering, EOF, and worker termination while blocked. The managed HTTP preview cannot enable SharedArrayBuffer; production HTTPS browser checks are recorded separately when completed.
 
 Limits: these are representative regression cases, not a proof that every possible C program or undefined behavior is handled. Windows execution and the Tk GUI have not been revalidated in this Linux environment because no display server is available. The arithmetic-to-assembly reference is unchanged.
+
+### Production verification
+
+Vercel successfully built commit `55a36ffd6bdf6514d0d43bf473e40be73a6415f4` from this repository. Chrome testing used the existing HTTPS address, https://c-compiler-raunit.vercel.app/, with no project or domain rename.
+
+The live interface displayed an unterminated prompt, waited for two separate answers (4 and 7), and printed `Sum = 11`. That run lasted 22.24 seconds including input waits. A second program consumed preloaded 2 before live 3, then stopped its input loop on Send EOF and printed `Sum = 5`. Stop ended a worker waiting for input. An infinite loop continued beyond the former execution deadline until Stop. Subsequent programs compiled successfully.
+
+The live Problems panel reported forbidden `printf` at original line 3, column 3; clicking it moved the editor to that position. A malformed `each` loop received the compiler's missing-semicolon diagnostic at original line 2, column 19. The original source, rather than the shorter translated C spelling, determined that position.
+
+A fresh frontend build and production asset build succeeded locally; the Vercel deployment also succeeded. Physical mobile browsers, Firefox, Safari, Windows process handling, and the changed Tk widgets remain unverified. A browser may suspend a background tab or close a page under memory pressure; unlimited execution time does not make the app an always-on remote service.
