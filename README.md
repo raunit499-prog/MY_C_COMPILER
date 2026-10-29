@@ -23,7 +23,7 @@ Open this link in a recent browser on a computer or phone. You do not need to in
 
 1. Choose **Hello, world** or **All 13 keywords** from the example menu. On a smaller screen, open the workspace menu to find the examples.
 2. Write or edit a program using our thirteen custom keywords.
-3. If the program reads input, enter all values in **Program input** before running it. Put each answer on a separate line.
+3. If the program reads input, you can preload values or wait until it asks. Type a value in **Program input** and click **Send input** (Ctrl+Enter in that box). Use **Send EOF** when you want to close input.
 4. Click **Run code**, or press **Ctrl+Enter** (**Command+Enter** on a Mac).
 5. Read the **Console**. Click an entry in **Problems** to jump to its reported source line and column.
 
@@ -39,15 +39,15 @@ The web interface uses HTML, CSS, JavaScript, and CodeMirror. It uses the projec
 
 | Version | Compiler/runtime | Input and setup |
 | --- | --- | --- |
-| **Live web app** | C keyword frontend, Clang, WebAssembly, and WASI in the browser. | No local compiler installation. Input must be entered before Run; after those values, the program receives end-of-file (EOF). |
+| **Live web app** | C keyword frontend, Clang, WebAssembly, and WASI in the browser. | No local compiler installation. Supports preloaded input and live input through Send input / Send EOF. |
 | **Desktop application in this repository** | C keyword frontend and native GCC, with a Python/Tkinter interface. | Requires Python/Tkinter and GCC. Supports preloaded input and live input through stdin / Send. |
 | **Arithmetic milestone in `my-c-compiler/`** | Our small C-to-x86-64 assembly compiler, followed by an assembler and linker. | Separate command-line learning compiler with the limited arithmetic features described in its own README. |
 
 The web app uses the same thirteen default custom names and the same `until` behavior. Its keyword map is fixed in the interface. The desktop version allows its aliases to be configured.
 
-The browser version has a **1 MiB** source limit, a **64 KiB** input limit, and a **512 KiB** output limit. Its default run limit is **10 seconds**, selectable to **30 or 60 seconds**. Input is preloaded rather than typed into a live terminal. Desktop operating-system commands, native GUI libraries, sockets, and access to the real machine filesystem are unavailable through this WASI runtime.
+The browser version has a **1 MiB** source limit and a **64 KiB** limit per input submission. **Program execution has no time limit:** it continues until the program finishes, encounters a runtime error, or you press Stop. Input stays open until you send EOF. The console keeps recent output in a bounded buffer without killing a program that prints continuously. Desktop operating-system commands, native GUI libraries, sockets, and access to the real machine filesystem are unavailable through this WASI runtime.
 
-Our browser application is a separate build. The repository folders and local launch commands below describe the **desktop project**, unless a section explicitly says otherwise.
+Our browser source is included in `web/`. The local desktop launch commands below describe the **desktop project**, unless a section explicitly says otherwise. Live browser input needs HTTPS (or localhost), cross-origin isolation, and a browser with SharedArrayBuffer support. The Vercel headers configure this isolation.
 
 ## Our custom vocabulary
 
@@ -141,7 +141,7 @@ This Tkinter application needs a graphical desktop. It is a desktop program, not
 | **Language help** | Explains the thirteen default mappings and the main language rules. |
 | **Progress indicator** | Animates while compilation or execution is active. |
 | **Examples** | Provides Hello World, all keywords, number guessing, and star pattern programs. |
-| **Program input** | Lets us preload input values and select an execution timeout. |
+| **Program input** | Lets us preload input values. Running programs have no execution deadline; Stop ends them. |
 | **stdin / Send** | Sends a line to a running program. Send EOF closes its input, and Stop requests termination. |
 | **New / Open / Save / Save keywords** | Creates, opens, and saves source or configuration files. |
 | **Export program** | Copies a current, successfully built executable to a permanent destination. |
@@ -182,8 +182,8 @@ Python, Java, JavaScript, or C++ source containing syntax that is invalid in our
 | Source file | At most **1 MiB**, with no embedded NUL bytes. |
 | Configured alias | At most **63 ASCII identifier characters**, beginning with a letter. |
 | Preloaded standard input | At most **64 KiB**. |
-| Program execution | **30 seconds** by default, including time spent waiting for input; selectable up to **300 seconds**. |
-| Program output | At most **512 KiB** per run. |
+| Program execution | **No time limit.** Runs until completion, a runtime failure, or Stop. |
+| Visible program output | Recent output is retained in a bounded console buffer. Older display text is discarded without stopping execution. |
 | Compiler command | A **45-second** deadline. |
 
 The translator leaves identifiers inside preprocessor directives unchanged rather than translating their custom spellings there. Standard directive names such as `#if` are allowed, while forbidden standard identifiers in macro bodies are rejected. Separately included headers should use standard C because GCC processes them without passing them through our custom scanner.
@@ -205,6 +205,8 @@ Advanced preprocessing, explicit `#line` remapping, and compiler extensions can 
 | `custom-keywords/tests/` | Contains regression tests for the C translator. |
 | `my-c-compiler/` | Contains our separate arithmetic-to-assembly learning reference. It is not the GUI backend or the strict dialect compiler. |
 | `docs/VALIDATION.md` | Records verification results and platform limitations. |
+| `web/` | Contains the browser interface, WASI runtime integration, live stdin bridge, and browser compiler tests. |
+| `vercel.json` | Builds `web/` and supplies the response headers required for live input. |
 
 Generated build files and Python caches are not included in the distributed project. Files such as `settings.json`, saved source files, and exported executables are created during use.
 
@@ -221,6 +223,24 @@ gcc -std=c11 build/hello.c -o build/hello
 ```
 
 The standalone translator checks lexical rules and writes standard C; it does not invoke GCC itself. Our GUI connects that translation stage to full compilation, diagnostic mapping, and execution controls.
+
+## Building the browser version
+
+From the repository root, with Node.js 24 and npm installed:
+
+```sh
+npm --prefix web ci
+npm --prefix web run dev
+```
+
+To check and build it:
+
+```sh
+npm --prefix web test
+npm --prefix web run build
+```
+
+The production output is `web/dist/`. Vercel uses the root `vercel.json` to install and build the browser app. Compiler assets are copied from the pinned npm dependency, and the browser C frontend is built from `custom-keywords/src/`; generated binaries and `node_modules/` are not committed.
 
 ## References and tools
 

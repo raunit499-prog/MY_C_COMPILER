@@ -41,8 +41,8 @@ class SourceDiagnostics:
         self.input_path = str(input_path)
         self.generated_path = str(generated_path)
         self.emit = emit
-        self.original_lines = source.splitlines()
-        self.starts = [0] + [m.end() for m in re.finditer("\n", source)]
+        self.original_lines = re.split(r"\r\n|\r|\n", source)
+        self.starts = [0] + [m.end() for m in re.finditer(r"\r\n|\r|\n", source)]
         self.normalized, self.positions = normalized_source(source)
 
     def mapping(self, generated):
@@ -99,7 +99,7 @@ class SourceDiagnostics:
             if body is None or positions is None:
                 output.append(line)
                 continue
-            rows = body.splitlines(keepends=True)
+            rows = re.findall(r"[^\r\n]*(?:\r\n|\r|\n|$)", body)
             row, column = int(row), int(column)
             before = sum(map(len, rows[:row - 1]))
             physical = rows[row - 1] if row <= len(rows) else ""

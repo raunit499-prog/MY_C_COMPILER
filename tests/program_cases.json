@@ -1,0 +1,128 @@
+[
+  {
+    "name": "each counts and accumulates",
+    "source": "#include <stdio.h>\nint main(void){int sum=0;each(int i=0;i<10;i++)sum+=i;output(\"%d\",sum);provide 0;}",
+    "input": "",
+    "output": "45"
+  },
+  {
+    "name": "each empty body",
+    "source": "#include <stdio.h>\nint main(void){int i;each(i=0;i<4;i++);output(\"%d\",i);provide 0;}",
+    "input": "",
+    "output": "4"
+  },
+  {
+    "name": "each omitted clauses and snap",
+    "source": "#include <stdio.h>\nint main(void){int i=0;each(;;){i++;when(i==5)snap;}output(\"%d\",i);provide 0;}",
+    "input": "",
+    "output": "5"
+  },
+  {
+    "name": "each decrement and so_on",
+    "source": "#include <stdio.h>\nint main(void){each(int i=4;i>=0;i--){when(i==2)so_on;output(\"%d\",i);}provide 0;}",
+    "input": "",
+    "output": "4310"
+  },
+  {
+    "name": "until false skips body",
+    "source": "#include <stdio.h>\nint main(void){int n=0;until(0)n++;output(\"%d\",n);provide 0;}",
+    "input": "",
+    "output": "0"
+  },
+  {
+    "name": "until so_on and snap",
+    "source": "#include <stdio.h>\nint main(void){int i=0,s=0;until(1){i++;when(i==2)so_on;when(i==5)snap;s+=i;}output(\"%d\",s);provide 0;}",
+    "input": "",
+    "output": "8"
+  },
+  {
+    "name": "execute false runs once",
+    "source": "#include <stdio.h>\nint main(void){int n=0;execute{n++;}until(0);output(\"%d\",n);provide 0;}",
+    "input": "",
+    "output": "1"
+  },
+  {
+    "name": "execute so_on reaches condition",
+    "source": "#include <stdio.h>\nint main(void){int i=0,s=0;execute{i++;when(i==2)so_on;s+=i;}until(i<4);output(\"%d\",s);provide 0;}",
+    "input": "",
+    "output": "8"
+  },
+  {
+    "name": "nested each and until",
+    "source": "#include <stdio.h>\nint main(void){int n=0;each(int i=0;i<3;i++){int j=0;until(j<3){j++;when(j==2)so_on;n++;}}output(\"%d\",n);provide 0;}",
+    "input": "",
+    "output": "6"
+  },
+  {
+    "name": "nested execute loops",
+    "source": "#include <stdio.h>\nint main(void){int a=0,n=0;execute{int b=0;execute{n++;b++;}until(b<2);a++;}until(a<3);output(\"%d\",n);provide 0;}",
+    "input": "",
+    "output": "6"
+  },
+  {
+    "name": "choose fallthrough",
+    "source": "#include <stdio.h>\nint main(void){int n=1;choose(n){match 1:output(\"A\");match 2:output(\"B\");snap;otherwise:output(\"C\");}provide 0;}",
+    "input": "",
+    "output": "AB"
+  },
+  {
+    "name": "choose otherwise",
+    "source": "#include <stdio.h>\nint main(void){choose(99){match 1:output(\"A\");snap;otherwise:output(\"D\");}provide 0;}",
+    "input": "",
+    "output": "D"
+  },
+  {
+    "name": "choose snap does not exit loop",
+    "source": "#include <stdio.h>\nint main(void){each(int i=0;i<3;i++){choose(i){match 1:snap;otherwise:output(\"%d\",i);}output(\"x\");}provide 0;}",
+    "input": "",
+    "output": "0xx2x"
+  },
+  {
+    "name": "so_on in choose continues enclosing loop",
+    "source": "#include <stdio.h>\nint main(void){each(int i=0;i<3;i++){choose(i){match 1:so_on;otherwise:output(\"%d\",i);}output(\"x\");}provide 0;}",
+    "input": "",
+    "output": "0x2x"
+  },
+  {
+    "name": "nested when and given binding",
+    "source": "#include <stdio.h>\nint main(void){int a=1,b=0;when(a)when(b)output(\"A\");given output(\"B\");provide 0;}",
+    "input": "",
+    "output": "B"
+  },
+  {
+    "name": "short circuit preserves side effects",
+    "source": "#include <stdio.h>\nint main(void){int n=0;when(0&&++n){}when(1||++n){}output(\"%d\",n);provide 0;}",
+    "input": "",
+    "output": "0"
+  },
+  {
+    "name": "integer input followed by character",
+    "source": "#include <stdio.h>\nint main(void){int n;char c;when(input(\"%d %c\",&n,&c)!=2)provide 1;output(\"%d %c\",n,c);provide 0;}",
+    "input": "12\nZ\n",
+    "output": "12 Z"
+  },
+  {
+    "name": "string and float input",
+    "source": "#include <stdio.h>\nint main(void){char name[20];double v;when(input(\"%19s %lf\",name,&v)!=2)provide 1;output(\"%s %.1f\",name,v);provide 0;}",
+    "input": "Raunit\n2.5\n",
+    "output": "Raunit 2.5"
+  },
+  {
+    "name": "invalid conversion is not silently accepted",
+    "source": "#include <stdio.h>\nint main(void){int n;output(\"%d\",input(\"%d\",&n));provide 0;}",
+    "input": "word\n",
+    "output": "0"
+  },
+  {
+    "name": "until input EOF loop",
+    "source": "#include <stdio.h>\nint main(void){int n,sum=0;until(input(\"%d\",&n)==1)sum+=n;output(\"%d\",sum);provide 0;}",
+    "input": "1\n2\n3\n",
+    "output": "6"
+  },
+  {
+    "name": "fgets preserves spaces",
+    "source": "#include <stdio.h>\nint main(void){char line[50];when(fgets(line,sizeof line,stdin))output(\"%s\",line);provide 0;}",
+    "input": "hello world\n",
+    "output": "hello world\n"
+  }
+]

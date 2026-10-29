@@ -65,7 +65,7 @@ class CompilerBackend:
         self.cancelled = threading.Event()
         self._process: subprocess.Popen | None = None
         self._process_lock = threading.Lock()
-        self._stdin_lock = threading.Lock()
+        self._stdin_lock = threading.RLock()
         self._stdin_closed = False
 
     def reset(self):
@@ -236,7 +236,7 @@ class CompilerBackend:
                 except (OSError, ValueError):
                     pass
 
-    def run(self, result: BuildResult, initial_input="", timeout=30) -> RunResult:
+    def run(self, result: BuildResult, initial_input="", timeout=None) -> RunResult:
         self._active()
         if not result.executable or not result.executable.is_file():
             raise BuildError("Compile an executable before running.")
@@ -246,26 +246,29 @@ class CompilerBackend:
             bufsize=0, **self._process_options(),
         )
         self._set_process(process)
-        exceeded = threading.Event()
 
         def read_output():
             decoder = codecs.getincrementaldecoder("utf-8")("replace")
-            total = 0
+            pending = ""
+            last_emit = time.monotonic()
             try:
                 while True:
                     chunk = os.read(process.stdout.fileno(), 4096)
                     if not chunk:
                         break
-                    remaining = max(0, self.OUTPUT_LIMIT - total)
-                    if remaining:
-                        self.emit("output", decoder.decode(chunk[:remaining]))
-                    total += len(chunk)
-                    if total > self.OUTPUT_LIMIT:
-                        exceeded.set()
-                        break
-                tail = decoder.decode(b"", final=True)
-                if tail:
-                    self.emit("output", tail)
+                    pending = (pending + decoder.decode(chunk))[-65536:]
+                    if time.monotonic() - last_emit >= 0.04:
+                        if pending:
+                            self.emit("output", pending)
+                            pending = ""
+                        last_emit = time.monotonic()
+                    # An unbuffered prompt may be the only output before stdin blocks.
+                    elif len(chunk) < 4096 and pending:
+                        self.emit("output", pending)
+                        pending = ""
+                pending += decoder.decode(b"", final=True)
+                if pending:
+                    self.emit("output", pending)
             except (OSError, ValueError):
                 pass
             finally:
@@ -276,7 +279,14 @@ class CompilerBackend:
         # Preloaded input is sent first; stdin stays open for live input.
         if initial_input:
             payload = initial_input if initial_input.endswith("\n") else initial_input + "\n"
-            threading.Thread(target=self.send_input, args=(payload,), daemon=True).start()
+            initial_started = threading.Event()
+            def preload():
+                # Establish ordering before enabling live Send/EOF in the GUI.
+                with self._stdin_lock:
+                    initial_started.set()
+                    self.send_input(payload)
+            threading.Thread(target=preload, daemon=True).start()
+            initial_started.wait()
         self.emit("running", process.pid)
         started = time.monotonic()
         reason = "completed"
@@ -284,10 +294,6 @@ class CompilerBackend:
             while process.poll() is None:
                 if self.cancelled.is_set():
                     reason = "stopped"
-                elif exceeded.is_set():
-                    reason = "output limit"
-                elif time.monotonic() - started >= timeout:
-                    reason = "time limit"
                 else:
                     time.sleep(0.025)
                     continue
@@ -295,9 +301,6 @@ class CompilerBackend:
                 break
             process.wait(timeout=5)
             reader.join(timeout=2)
-            # A short-lived program may hit the output cap just before it exits.
-            if exceeded.is_set() and reason == "completed":
-                reason = "output limit"
             self.close_input()
             return RunResult(process.returncode, reason, time.monotonic() - started)
         finally:

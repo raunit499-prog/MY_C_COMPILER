@@ -60,6 +60,10 @@ class StrictLanguageTests(unittest.TestCase):
         source = '#include <stdio.h>\r\nint main(void){\r\nout\\\r\nput("x"); missing = 1;\r\n}\r\n'
         self.reject(source, 4, source.splitlines()[3].index("missing") + 1)
 
+    def test_cr_only_line_endings_keep_original_locations(self):
+        source = '#include <stdio.h>\rint main(void){\r output("x"); missing=1;\r}'
+        self.reject(source, 3, 15)
+
     def test_unicode_and_tab_location(self):
         source = '#include <stdio.h>\nint main(void){ output("π");\tmissing = 1; }\n'
         self.reject(source, 2, source.splitlines()[1].index("missing") + 1)

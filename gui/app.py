@@ -163,7 +163,7 @@ class CompilerApp:
     def __init__(self, root: tk.Tk, project=ROOT):
         self.root = root
         self.project = Path(project).resolve()
-        self.events = queue.Queue()
+        self.events = queue.Queue(maxsize=256)
         gcc = ""
         try:
             saved = json.loads(settings_path().read_text(encoding="utf-8"))
@@ -175,7 +175,7 @@ class CompilerApp:
         except (OSError, ValueError, TypeError):
             pass
         self.backend = CompilerBackend(
-            self.project, lambda kind, value: self.events.put((kind, value)), gcc)
+            self.project, self._backend_event, gcc)
         self.worker = None
         self.last_build = None
         self.built_signature = ""
@@ -320,12 +320,7 @@ class CompilerApp:
                    MUTED, 9, justify="left").pack(anchor="w")
         limit_row = tk.Frame(input_tools, bg=PANEL)
         limit_row.pack(fill="x", pady=(12, 14))
-        self.label(limit_row, "Run limit", MUTED, 9).pack(side="left")
-        self.time_limit = ttk.Combobox(limit_row, width=5, state="readonly",
-                                       values=("10", "30", "60", "120", "300"))
-        self.time_limit.set("30")
-        self.time_limit.pack(side="left", padx=8)
-        self.label(limit_row, "seconds", MUTED, 9).pack(side="left")
+        self.label(limit_row, "Run time: unlimited — press Stop to end.", MUTED, 9).pack(side="left")
         self.label(input_tools, "LIVE INPUT", MUTED, 9, True).pack(anchor="w", pady=(6, 6))
         self.label(input_tools,
                    "Run your program, type a value in the\nstdin box, then press Enter or Send.\n\n"
@@ -408,10 +403,20 @@ class CompilerApp:
         self.output_tabs.add(frame, text=title)
         return text
 
+    def _backend_event(self, kind, value):
+        try:
+            self.events.put_nowait((kind, value))
+        except queue.Full:
+            if kind != "output":
+                self.events.put((kind, value))
+
     @staticmethod
     def _append(widget, text, tag=None):
         widget.configure(state="normal")
         widget.insert("end", str(text), tag or ())
+        length = int((widget.count("1.0", "end-1c", "chars") or (0,))[0])
+        if length > CompilerBackend.OUTPUT_LIMIT:
+            widget.delete("1.0", f"1.0+{length - CompilerBackend.OUTPUT_LIMIT}c")
         widget.see("end")
         widget.configure(state="disabled")
 
@@ -597,7 +602,6 @@ class CompilerApp:
             return
         signature = self._signature()
         source_folder = self.include_folder
-        timeout = int(self.time_limit.get())
         self.backend.reset()
         self.backend.cleanup()
         self.last_build = None
@@ -621,7 +625,7 @@ class CompilerApp:
                                             translate_only=action == "translate")
                 self.events.put(("built", (result, signature)))
                 if action == "run":
-                    outcome = self.backend.run(result, initial, timeout)
+                    outcome = self.backend.run(result, initial)
                     self.events.put(("finished", outcome))
                 else:
                     self.events.put(("complete", action))
@@ -636,11 +640,18 @@ class CompilerApp:
     def _poll(self):
         if self.closing:
             return
+        pending_output = ""
         for _ in range(256):
             try:
                 kind, value = self.events.get_nowait()
             except queue.Empty:
                 break
+            if kind == "output":
+                pending_output = (pending_output + value)[-CompilerBackend.OUTPUT_LIMIT:]
+                continue
+            if pending_output:
+                self._append(self.console, pending_output)
+                pending_output = ""
             if kind == "diagnostic":
                 item = self.problems.insert("", "end", values=(value["severity"], value["line"],
                                                              value["column"], value["message"]))
@@ -652,8 +663,6 @@ class CompilerApp:
                     pane.text.tag_add("error_token", f"{row}.{col-1}", f"{row}.{col}")
             elif kind == "log":
                 self._append(self.log, value)
-            elif kind == "output":
-                self._append(self.console, value)
             elif kind == "status":
                 self.status.configure(text=value, fg=BLUE)
             elif kind == "generated":
@@ -695,6 +704,8 @@ class CompilerApp:
             elif kind == "input_error":
                 self._append(self.console, "\nInput could not be sent: process ended or stdin is closed.\n",
                              "hint")
+        if pending_output:
+            self._append(self.console, pending_output)
         self.root.after(40, self._poll)
 
     def send_input(self):

@@ -1,10 +1,10 @@
-# My validation record
+# Our validation record
 
-All 42 current tests passed: 9 translator, 12 backend, 12 strict-language and 9 GUI tests.
+The earlier package validation recorded 42 passing tests: 9 translator, 12 backend, 12 strict-language and 9 GUI tests. This is a historical baseline; the current review results appear below.
 
-My current package is checked on Linux with actual GCC builds and actual Tk widgets in a virtual display. Native Windows execution is not available in this test environment, so Windows launch and process termination remain unverified.
+That earlier validation used Linux, GCC and Tk widgets in a virtual display. Native Windows execution was not available. The current environment has no display server, so the changed Tk interface has not been revalidated visually.
 
-My validation commands from the project root are:
+Our validation commands from the project root are:
 
 ```sh
 python custom-keywords/tests/test_translation.py
@@ -13,10 +13,23 @@ python tests/test_strict_language.py
 python tests/test_gui.py
 ```
 
-The GUI suite needs a graphical or virtual display. The other suites run without one. See docs/TEST_RESULTS.txt for the captured current results, not just a historical claim.
+The GUI suite needs a graphical or virtual display. The other suites run without one. `docs/TEST_RESULTS.txt` contains the earlier package results, not the results of the runtime review below.
 
-Coverage includes all thirteen forbidden standard spellings, accepted custom examples, comments/strings, malformed source/configuration, numeric/literal boundaries, line endings and continuations, renamed alias lengths, Unicode/tabs, foreign-language examples, unknown functions, missing semicolons, real generated executables, live input and EOF, cancellation, time/output limits, local headers and paths with spaces.
+Coverage includes all thirteen forbidden standard spellings, accepted custom examples, comments/strings, malformed source/configuration, numeric/literal boundaries, line endings and continuations, renamed alias lengths, Unicode/tabs, foreign-language examples, unknown functions, missing semicolons, real generated executables, live input and EOF, cancellation, bounded output display, local headers and paths with spaces.
 
 GUI checks invoke Run, Compile, Translate, Send and Stop, verify error highlighting and source navigation, jump to an invalid Keywords entry, exercise Go to line and help, and round-trip source Open/Save with controlled picker paths. Not every dialog, platform, language construct or possible failing program is covered. Compiler error detection is not a proof of program correctness.
 
-The screenshot is a current Tk GUI capture. The separate arithmetic reference is retained but is not the strict GUI compiler backend.
+The existing screenshot belongs to the earlier Tk package validation. The separate arithmetic reference is retained but is not the strict GUI compiler backend.
+
+
+## Runtime and input review — 29 October 2026
+
+Program execution deadlines were removed from the desktop and browser interfaces. Compilation/preparation deadlines remain. Long output is bounded for display rather than terminating the program. Desktop preloaded input is ordered before live input and EOF.
+
+The browser source and root Vercel configuration are now included in the repository, addressing the previous deployment that attempted to build a repository without the browser files. Toolchain binaries are reproduced from pinned npm dependencies during the build. Live browser stdin uses a shared-memory channel and cross-origin isolation headers; only the worker waits, so Stop remains available.
+
+Automated checks completed locally: 72 WebAssembly/compiler/input tests passed; the desktop backend/diagnostic suite passed (26 tests reported, Tk GUI setup skipped); 9 C translator regression tests passed. The shared matrix includes 21 control-flow/input programs compiled through both GCC and Clang/WASI. Cases include empty loops, omitted for clauses, negative steps, nested loops, break/continue equivalents, switch fall-through/default, character/string/float input, invalid conversions, fgets, and EOF. Further tests reject malformed control flow and test runtime division by zero, failed-build recovery, UTF-8 output boundaries, and CR-only source locations.
+
+Chrome's managed HTTP preview confirmed hello execution, an infinite loop continuing beyond the former execution deadline until Stop, and successful recompilation after Stop. The preview must start from the repository root so the browser build can read the native frontend sources. Live-input bridge tests execute real WebAssembly in Node workers and validate prompt-before-read, successive input, preloaded-to-live ordering, EOF, and worker termination while blocked. The managed HTTP preview cannot enable SharedArrayBuffer; production HTTPS browser checks are recorded separately when completed.
+
+Limits: these are representative regression cases, not a proof that every possible C program or undefined behavior is handled. Windows execution and the Tk GUI have not been revalidated in this Linux environment because no display server is available. The arithmetic-to-assembly reference is unchanged.

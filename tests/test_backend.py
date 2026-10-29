@@ -124,17 +124,19 @@ class BackendTests(unittest.TestCase):
         self.backend.cancel()
         self.assertEqual(self.finish(thread, outcomes).reason, "stopped")
 
-    def test_runtime_limit(self):
-        outcome = self.backend.run(self.compile('int main(void){until(1){}provide 0;}'),
-                                   timeout=0.2)
-        self.assertEqual(outcome.reason, "time limit")
-        self.assertLess(outcome.elapsed, 4)
+    def test_program_runs_without_a_deadline_until_stopped(self):
+        result = self.compile('int main(void){until(1){}provide 0;}')
+        thread, outcomes = self.launch(result, timeout=0.05)
+        time.sleep(0.25)
+        self.assertTrue(thread.is_alive(), "Legacy timeout still stopped the program.")
+        self.backend.cancel()
+        self.assertEqual(self.finish(thread, outcomes).reason, "stopped")
 
-    def test_output_limit(self):
-        source = '#include <stdio.h>\nint main(void){until(1)output("hello\\n");}'
+    def test_large_output_does_not_stop_the_program(self):
+        source = '#include <stdio.h>\nint main(void){each(int i=0;i<600000;i++)output("x");provide 0;}'
         outcome = self.backend.run(self.compile(source))
-        self.assertEqual(outcome.reason, "output limit")
-        self.assertLessEqual(len(self.output().encode()), self.backend.OUTPUT_LIMIT)
+        self.assertEqual(outcome.reason, "completed")
+        self.assertEqual(outcome.returncode, 0)
 
     def test_local_header_and_spaces_in_paths(self):
         include_folder = self.project / "my headers & code"
