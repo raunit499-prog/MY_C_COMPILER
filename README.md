@@ -1,5 +1,7 @@
 # C Compiler — Group Project
 
+**Live web app:** [Open C Compiler](https://c-compiler-raunit.vercel.app/)
+
 We developed this project to explore how a custom C-like language can be translated, compiled, and run. Our frontend is written in **C**, our desktop interface uses **Python and Tkinter**, and **GCC** compiles the generated standard C into a native executable.
 
 Our work focuses on the keyword frontend, its connection to GCC, and the desktop interface. We use GCC as the native compilation backend; we do not claim to have written GCC or a complete C implementation from scratch.
@@ -10,6 +12,42 @@ Our work focuses on the keyword frontend, its connection to GCC, and the desktop
 - **Yug Sharma**
 - **Raunit Singh**
 - **Ayush Kestwal**
+
+## Try the web app
+
+Our browser version is hosted on **Vercel**:
+
+**[https://c-compiler-raunit.vercel.app/](https://c-compiler-raunit.vercel.app/)**
+
+Open this link in a recent browser on a computer or phone. You do not need to install Python, Tkinter, or GCC to use the website.
+
+1. Choose **Hello, world** or **All 13 keywords** from the example menu. On a smaller screen, open the workspace menu to find the examples.
+2. Write or edit a program using our thirteen custom keywords.
+3. If the program reads input, enter all values in **Program input** before running it. Put each answer on a separate line.
+4. Click **Run code**, or press **Ctrl+Enter** (**Command+Enter** on a Mac).
+5. Read the **Console**. Click an entry in **Problems** to jump to its reported source line and column.
+
+**Translate** shows the generated standard C. **Compile** translates, compiles, and links without running. **Run code** also executes the compiled program. **Stop** terminates the browser worker; the next action starts a new worker.
+
+The first compilation downloads about **29 MB** of tools from the site, so allow time for that initial load. Later loads may benefit from browser caching.
+
+### How the browser version works
+
+Our C frontend translates the custom keywords into standard C. **Clang/WASI** then compiles and links that C into **WebAssembly**, which runs in a separate browser worker. Vercel hosts the website and its assets; compilation takes place on the user's device rather than through a remote compiler API.
+
+The web interface uses HTML, CSS, JavaScript, and CodeMirror. It uses the project's C frontend together with the third-party Clang/WASI toolchain; we do not claim authorship of those third-party tools.
+
+| Version | Compiler/runtime | Input and setup |
+| --- | --- | --- |
+| **Live web app** | C keyword frontend, Clang, WebAssembly, and WASI in the browser. | No local compiler installation. Input must be entered before Run; after those values, the program receives end-of-file (EOF). |
+| **Desktop application in this repository** | C keyword frontend and native GCC, with a Python/Tkinter interface. | Requires Python/Tkinter and GCC. Supports preloaded input and live input through stdin / Send. |
+| **Arithmetic milestone in `my-c-compiler/`** | Our small C-to-x86-64 assembly compiler, followed by an assembler and linker. | Separate command-line learning compiler with the limited arithmetic features described in its own README. |
+
+The web app uses the same thirteen default custom names and the same `until` behavior. Its keyword map is fixed in the interface. The desktop version allows its aliases to be configured.
+
+The browser version has a **1 MiB** source limit, a **64 KiB** input limit, and a **512 KiB** output limit. Its default run limit is **10 seconds**, selectable to **30 or 60 seconds**. Input is preloaded rather than typed into a live terminal. Desktop operating-system commands, native GUI libraries, sockets, and access to the real machine filesystem are unavailable through this WASI runtime.
+
+Our browser application is a separate build. The repository folders and local launch commands below describe the **desktop project**, unless a section explicitly says otherwise.
 
 ## Our custom vocabulary
 
@@ -60,7 +98,7 @@ int main(void) {
 
 The frontend translates the custom names into standard C before GCC compiles the result. If a program uses one of the thirteen replaced standard names, the frontend reports an error and identifies the required custom spelling.
 
-All thirteen mappings must be present. The configuration can change an alias, but it cannot restore that mapping's original standard spelling. Programs must use the aliases in the current configuration.
+All thirteen mappings must be present. In the desktop version, the configuration can change an alias, but it cannot restore that mapping's original standard spelling. Desktop programs must use the aliases in the current configuration; the web app uses the fixed default map shown above.
 
 ## Getting started on Windows
 

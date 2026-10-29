@@ -1,8 +1,10 @@
 # C Compiler — Arithmetic-to-Assembly Milestone
 
+**Live custom-keyword web app:** [Open C Compiler](https://c-compiler-raunit.vercel.app/) · [Browser instructions](../README.md#try-the-web-app)
+
 This milestone is part of our group project to understand how compilers work. We built a small compiler in **C** that translates a limited subset of C into **x86-64 assembly**, with the aim of adding language features gradually.
 
-This README covers the separate arithmetic compiler. It is different from our strict custom-keyword frontend and desktop GUI. The examples here use ordinary C names, including `return`.
+This README covers the separate arithmetic compiler. It is different from the custom-keyword compiler used by our desktop GUI and live web app. The examples here use ordinary C names, including `return`.
 
 ## Our team
 
