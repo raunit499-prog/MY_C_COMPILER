@@ -23,6 +23,14 @@ Our browser app uses the same thirteen custom keywords as the desktop compiler. 
 
 The console keeps recent output in fixed memory. Excessive printing discards old display text rather than ending the program. The output stream is UTF-8 decoded across writes. Input submissions are limited to 64 KiB and source to 1 MiB.
 
+## Indentation
+
+The editor automatically formats the source with **four spaces per block** before Translate, Compile, and Run. **Format code** (Alt+Shift+F) formats pasted or existing code without compiling it. Enter indents the next line, including custom control statements and `match`/`otherwise` bodies. Tab and Shift+Tab adjust indentation. Built-in examples use the same style. Ctrl+Z undoes a formatting change.
+
+Clang-format runs in the worker. It formats a temporary copy with standard C words, then restores the original source tokens, including the custom words, strings, and comments. Token changes are refused, and formatting cannot turn a forbidden standard spelling into an accepted alias. If an automatic formatting attempt fails, its reason is logged and the real compiler checks the original source so syntax errors remain available.
+
+Formatting changes the visible source layout. Diagnostics and line-sensitive values such as `__LINE__` use that displayed layout. If the source is edited while formatting is in progress, the newer edits are kept.
+
 ## Compiler behavior
 
 The mapping is fixed in the web interface: output/printf, input/scanf, each/for, when/if, given/else, until/while, execute/do, choose/switch, match/case, otherwise/default, snap/break, so_on/continue, provide/return. Standard replaced spellings are rejected in submitted code. Strings and comments keep their contents. `until` repeats while its condition is true.
@@ -38,6 +46,8 @@ A separate runtime translation unit disables stdio buffering so prompts appear b
 - `src/input-channel.js`: a bounded SharedArrayBuffer/Atomics bridge; only the worker blocks.
 - `src/output-buffer.js`: a fixed-size UTF-8 output ring.
 - `src/diagnostics.js`: original-source positions.
+- `src/formatting.js`: alias-aware formatting and token preservation checks.
+- `src/indentation.js`: four-space Enter-key indentation using a parser copy of the source.
 - `src/main.js`, `index.html`, `src/style.css`: existing editor, results, input, and navigation.
 - `scripts/prepare-compiler.mjs`: copies toolchain assets from npm and builds the browser frontend from the repository's C sources. It replaces native `tmpfile()` with a private in-memory WASI file.
 - `tests/`: actual compiler/runtime, control-flow, diagnostic, stdin, EOF, Stop, and output-buffer checks.
@@ -55,7 +65,7 @@ Use the URL printed by Vite. Production output is `web/dist/`. Vercel builds fro
 
 Live input requires a secure, cross-origin-isolated page with SharedArrayBuffer support. The root Vercel configuration supplies COOP and COEP headers. An HTTP preview on a non-localhost host cannot provide live input; it reports that limitation rather than silently returning EOF. Regular localhost development and the HTTPS production site support the intended path in compatible browsers.
 
-The first toolchain load is about 29 MB. This is Clang/WASI, rather than desktop GCC or a full operating system. Native GUI libraries, sockets, and real device filesystem access are unavailable. C undefined behavior and memory exhaustion are not comprehensively diagnosed. There is no debugger added in this review.
+The first compiler/formatter load is about 30 MB. The formatter uses the pinned `@wasm-fmt/clang-format` package. This is Clang/WASI, rather than desktop GCC or a full operating system. Native GUI libraries, sockets, and real device filesystem access are unavailable. C undefined behavior and memory exhaustion are not comprehensively diagnosed. There is no debugger added in this review.
 
 ## Credits
 

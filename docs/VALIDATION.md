@@ -43,3 +43,11 @@ The live interface displayed an unterminated prompt, waited for two separate ans
 The live Problems panel reported forbidden `printf` at original line 3, column 3; clicking it moved the editor to that position. A malformed `each` loop received the compiler's missing-semicolon diagnostic at original line 2, column 19. The original source, rather than the shorter translated C spelling, determined that position.
 
 A fresh frontend build and production asset build succeeded locally; the Vercel deployment also succeeded. Physical mobile browsers, Firefox, Safari, Windows process handling, and the changed Tk widgets remain unverified. A browser may suspend a background tab or close a page under memory pressure; unlimited execution time does not make the app an always-on remote service.
+
+## Indentation review — 30 October 2026
+
+All 117 browser tests pass, including 45 formatter/editor checks. Each of the 21 shared control-flow/input programs was formatted, compiled with the actual frontend and Clang/WASI, and checked against its expected output. The tests also verify idempotence, preservation of tokens, strings and comments, standard-spelling rejection after formatting, directives and line splices, and Enter-key indentation for custom controls and switch labels.
+
+The production build succeeds with the formatter WASM bundled as a same-origin Vite asset. Chrome preview checks confirmed the Format code button, Alt+Shift+F, Undo restoring compact source, automatic formatting before Run, and a nested each/when/given program printing `1 even 3 even ` from input 4. Enter after an indented `match` label moved the cursor to column 13 for its body.
+
+The formatter uses a canonical parser copy and restores the original tokens. The compiler still enforces the custom vocabulary. Formatting is an editor change: diagnostics and line-sensitive macros use the displayed layout. The desktop GUI and compiler language rules are unchanged by this indentation update.

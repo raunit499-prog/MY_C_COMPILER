@@ -1,3 +1,4 @@
+import {insertCustomNewline} from './indentation.js';
 import {createInputBuffer, deliverInput} from './input-channel.js';
 import {OutputBuffer} from './output-buffer.js';
 import './style.css';
@@ -5,7 +6,7 @@ import {EditorState, StateEffect, StateField} from '@codemirror/state';
 import {EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, highlightSpecialChars, Decoration, ViewPlugin, MatchDecorator} from '@codemirror/view';
 import {cpp} from '@codemirror/lang-cpp';
 import {history, historyKeymap, defaultKeymap, indentWithTab} from '@codemirror/commands';
-import {syntaxHighlighting, HighlightStyle, bracketMatching} from '@codemirror/language';
+import {syntaxHighlighting, HighlightStyle, bracketMatching, indentUnit, indentOnInput} from '@codemirror/language';
 import {tags} from '@lezer/highlight';
 import {keywords, config} from './language.js';
 import {parseDiagnostics} from './diagnostics.js';
@@ -60,10 +61,10 @@ catch {text('save-status','Local saving unavailable');}
 const view = new EditorView({
   state:EditorState.create({doc:initial,extensions:[
     lineNumbers(), highlightSpecialChars(), history(), drawSelection(), highlightActiveLine(), cpp(),
-    syntaxHighlighting(codeColors), bracketMatching(), customSyntax, errorLines, editorTheme,
+    syntaxHighlighting(codeColors), bracketMatching(), indentUnit.of('    '), indentOnInput(), customSyntax, errorLines, editorTheme,
     EditorView.contentAttributes.of({'aria-label':'Custom C source code','spellcheck':'false'}),
     EditorState.tabSize.of(4),
-    keymap.of([{key:'Mod-Enter',run:()=>{perform('run');return true;}},{key:'Mod-s',run:()=>{download();return true;}},{key:'Mod-g',run:()=>{goToLine();return true;}},indentWithTab,...defaultKeymap,...historyKeymap]),
+    keymap.of([{key:'Enter',run:insertCustomNewline},{key:'Alt-Shift-f',run:()=>{perform('format');return true;}},{key:'Mod-Enter',run:()=>{perform('run');return true;}},{key:'Mod-s',run:()=>{download();return true;}},{key:'Mod-g',run:()=>{goToLine();return true;}},indentWithTab,...defaultKeymap,...historyKeymap]),
     EditorView.updateListener.of(update=>{
       if(update.selectionSet||update.docChanged) updatePosition();
       if(update.docChanged){
@@ -83,7 +84,7 @@ function saveDraft(){
 function toast(message){text('toast',message);$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,4200);}
 function showFile(file){activeFile=file;$('editor').hidden=file!=='source';$('generated-panel').hidden=file!=='generated';for(const type of ['source','generated']){const selected=type===file;$(type+'-tab').classList.toggle('active',selected);$(type+'-tab').setAttribute('aria-selected',String(selected));}if(file==='source')view.focus();}
 function showPanel(panel){activePanel=panel;for(const type of ['console','problems','log'])$(type+'-panel').hidden=type!==panel;document.querySelectorAll('.terminal-tab').forEach(button=>{const selected=button.dataset.panel===panel;button.classList.toggle('active',selected);button.setAttribute('aria-selected',String(selected));});}
-function setBusy(value){busy=value;if(!value){programRunning=false;waitingForInput=false;inputClosed=false;updateInputControls();}for(const id of ['run-button','compile-button','translate-button'])$(id).disabled=value;$('stop-button').disabled=!value;$('progress-track').hidden=!value;$('runtime-dot').className='status-dot'+(value?' busy':'');}
+function setBusy(value){busy=value;if(!value){programRunning=false;waitingForInput=false;inputClosed=false;updateInputControls();}for(const id of ['run-button','compile-button','translate-button','format-button'])$(id).disabled=value;$('stop-button').disabled=!value;$('progress-track').hidden=!value;$('runtime-dot').className='status-dot'+(value?' busy':'');}
 function updateInputControls(){
   $('send-input').disabled=!busy||!waitingForInput||inputClosed;
   $('send-eof').disabled=!busy||!waitingForInput||inputClosed;
@@ -135,6 +136,10 @@ function attachWorker(){
     if(data.id!==jobId||!busy)return;
     const {kind,value}=data;
     if(kind==='phase')setPhase(value);
+    else if(kind==='formatted'){
+      if(view.state.doc.toString()===sourceSnapshot){view.dispatch({changes:{from:0,to:view.state.doc.length,insert:value},userEvent:'input.format'});}
+      sourceSnapshot=value;
+    }
     else if(kind==='input-state'){waitingForInput=value.waiting;inputClosed=!!value.eof;updateInputControls();text('runtime-state',value.waiting?'Waiting for input · type a value and press Send':value.eof?'Running · input closed':'Running your program');if(value.waiting){$('stdin').focus();}}
     else if(kind==='log'){appendLog(value);refreshDiagnostics();}
     else if(kind==='generated'){
@@ -150,11 +155,12 @@ function attachWorker(){
     else if(kind==='compiled')appendLog(`Linked successfully · ${(value.bytes/1024).toFixed(1)} KiB WebAssembly`);
     else if(kind==='complete'){
       const duration=(value.elapsed/1000).toFixed(2)+' s';
-      const label=value.action==='run'?`Exit ${value.exitCode} · ${duration}`:value.action==='compile'?`Compiled · ${duration}`:`Translated · ${duration}`;
+      const label=value.action==='run'?`Exit ${value.exitCode} · ${duration}`:value.action==='compile'?`Compiled · ${duration}`:value.action==='format'?`Indented · ${duration}`:`Translated · ${duration}`;
       text('run-result',label);$('run-result').classList.toggle('failed',value.action==='run'&&value.exitCode!==0);
       appendLog(label);refreshDiagnostics();
-      finish(value.action==='run'?(value.exitCode===0?'Finished successfully':`Program returned ${value.exitCode}`):value.action==='compile'?'Compiled successfully':'Translation complete',value.action==='run'&&value.exitCode!==0);
+      finish(value.action==='run'?(value.exitCode===0?'Finished successfully':`Program returned ${value.exitCode}`):value.action==='compile'?'Compiled successfully':value.action==='format'?'Indentation applied · 4 spaces':'Translation complete',value.action==='run'&&value.exitCode!==0);
       if(value.action==='translate')showFile('generated');
+      if(value.action==='format')showFile('source');
       if(value.action!=='run')showPanel(diagnostics.some(d=>d.severity==='error')?'problems':'log');
       else if(!stdout){$('console-empty').hidden=true;}
     }
@@ -184,7 +190,7 @@ function perform(action){
   generatedView.dispatch({changes:{from:0,to:generatedView.state.doc.length,insert:''}});text('generated-note','Waiting for a successful translation.');
   text('console-output','');text('build-log','');text('run-result','');text('problem-count','0');$('run-result').classList.remove('failed');$('console-empty').hidden=true;
   view.dispatch({effects:decorationsEffect.of(Decoration.none)});
-  refreshDiagnostics();showPanel(action==='run'?'console':'log');setBusy(true);setPhase(cold?'Loading tools · first download about 29 MB':'Checking your code');
+  refreshDiagnostics();showPanel(action==='run'?'console':'log');setBusy(true);setPhase(cold?(action==='format'?'Loading formatter':'Loading tools · first download about 30 MB'):'Checking your code');
   saveDraft();jobId++;workerJobs++;
   worker.postMessage({id:jobId,action,source,config,input:initialInput,inputBuffer});
 }
@@ -199,7 +205,7 @@ const definitions=[
   ['hello','Hello, world','01',''],['all_features','All 13 keywords','02','2\n'],['star_pattern','Star pattern','03','5\n'],
   ['error_demo','Spot the error','04','']
 ];
-examples.error_demo='#include <stdio.h>\n\nint main(void) {\n  printf("Try changing printf to output!\\n");\n  provide 0;\n}\n';
+examples.error_demo='#include <stdio.h>\n\nint main(void) {\n    printf("Try changing printf to output!\\n");\n    provide 0;\n}\n';
 for(const [key,title,icon,input]of definitions){
   const button=document.createElement('button');button.className='example-item';button.dataset.example=key;
   const number=document.createElement('span');number.className='example-icon';number.textContent=icon;
@@ -215,11 +221,11 @@ $('menu-toggle').addEventListener('click',()=>{const open=$('sidebar').classList
 for(const id of ['help-button','about-button','language-help'])$(id).addEventListener('click',()=>{$('help-dialog').showModal();closeMenu();});
 for(const id of ['close-help','help-done'])$(id).addEventListener('click',()=>$('help-dialog').close());
 $('source-tab').addEventListener('click',()=>showFile('source'));$('generated-tab').addEventListener('click',()=>showFile('generated'));$('main-file').addEventListener('click',()=>{showFile('source');closeMenu();});
-for(const action of ['run','compile','translate'])$(action+'-button').addEventListener('click',()=>perform(action));
+for(const action of ['run','compile','translate','format'])$(action+'-button').addEventListener('click',()=>perform(action));
 $('send-input').addEventListener('click',()=>sendInput(false));$('send-eof').addEventListener('click',()=>sendInput(true));
 $('stdin').addEventListener('keydown',event=>{if(busy&&(event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();event.stopPropagation();sendInput(false);}});
 $('stop-button').addEventListener('click',()=>terminate());$('download-source').addEventListener('click',download);$('go-line').addEventListener('click',goToLine);
-$('new-file').addEventListener('click',()=>{replaceSource('int main(void) {\n  provide 0;\n}\n');$('stdin').value='';toast('New program ready.');});
+$('new-file').addEventListener('click',()=>{replaceSource('int main(void) {\n    provide 0;\n}\n');$('stdin').value='';toast('New program ready.');});
 $('open-file').addEventListener('click',()=>$('file-input').click());$('file-input').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;if(file.size>1024*1024){toast('File exceeds the 1 MiB limit.');event.target.value='';return;}try{replaceSource(await file.text());toast('Opened '+file.name);}catch{toast('Could not read this file.');}event.target.value='';});
 for(const button of document.querySelectorAll('.terminal-tab'))button.addEventListener('click',()=>showPanel(button.dataset.panel));
 $('copy-output').addEventListener('click',async()=>{const value=activePanel==='console'?stdout:activePanel==='log'?logs:diagnostics.map(d=>`${d.file}:${d.line}:${d.column}: ${d.severity}: ${d.message}`).join('\n');try{await navigator.clipboard.writeText(value);toast('Copied to clipboard.');}catch{toast('Clipboard unavailable. Select the text and copy it.');}});

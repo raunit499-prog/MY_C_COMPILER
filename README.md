@@ -29,7 +29,9 @@ Open this link in a recent browser on a computer or phone. You do not need to in
 
 **Translate** shows the generated standard C. **Compile** translates, compiles, and links without running. **Run code** also executes the compiled program. **Stop** terminates the browser worker; the next action starts a new worker.
 
-The first compilation downloads about **29 MB** of tools from the site, so allow time for that initial load. Later loads may benefit from browser caching.
+The web editor applies **four-space indentation** before Translate, Compile, or Run. Press **Enter** for an indented new line, or use **Format code** (**Alt+Shift+F**) to format the whole program. **Tab** and **Shift+Tab** adjust indentation. Formatting can be undone with Ctrl+Z. Error locations refer to the source displayed after formatting.
+
+The first compilation downloads about **30 MB** of compiler and formatter tools from the site, so allow time for that initial load. Later loads may benefit from browser caching.
 
 ### How the browser version works
 

@@ -1,3 +1,5 @@
+import initFormatter, {format} from '@wasm-fmt/clang-format/vite';
+import {formatProgram} from './formatting.js';
 import {blockingInput} from './input-channel.js';
 import {sha256} from '@noble/hashes/sha2.js';
 import { CompilerEngine, CompilerFailure } from './engine.js';
@@ -14,6 +16,7 @@ if (!globalThis.crypto?.subtle) {
   else Object.defineProperty(globalThis, 'crypto', {value:{subtle:{digest}}});
 }
 let id;
+let formatterReady;
 let outputBuffer = '', outputKind = 'stdout', lastOutput = 0;
 const send = (kind, value) => postMessage({id, kind, value});
 function flushOutput() { if(outputBuffer) {send(outputKind,outputBuffer);outputBuffer='';} }
@@ -29,6 +32,18 @@ const engine = new CompilerEngine(emit);
 self.onmessage = async ({ data }) => {
   id = data.id;
   try {
+    const formatStarted=performance.now();
+    emit('phase','Indenting your program');
+    try {
+      formatterReady ||= initFormatter().catch(error=>{formatterReady=null;throw error;});
+      await formatterReady;
+      data.source=formatProgram(data.source,format);
+      emit('formatted',data.source);
+    } catch(error) {
+      if(data.action==='format')throw error;
+      emit('log','Indentation skipped: '+error.message+'\nCompiling the original source.');
+    }
+    if(data.action==='format'){emit('complete',{action:'format',elapsed:performance.now()-formatStarted});return;}
     if (!engine.frontend) {
       const response = await fetch('/customc.wasm');
       if (!response.ok) throw new Error('Could not load the C frontend. Refresh and try again.');
